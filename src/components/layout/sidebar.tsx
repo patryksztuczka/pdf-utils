@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Layers, Scissors, LogOut, FileText } from "lucide-react";
+import { Layers, Scissors, LogOut, FileText, LayoutGrid } from "lucide-react";
 
 export function Sidebar() {
   const location = useLocation();
@@ -36,6 +36,12 @@ export function Sidebar() {
             label="Split PDF" 
             to="/split" 
             active={isActive("/split")} 
+          />
+          <NavItem 
+            icon={<LayoutGrid className="h-4 w-4" />} 
+            label="Organizer" 
+            to="/organize" 
+            active={isActive("/organize")} 
           />
         </nav>
 

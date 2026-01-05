@@ -4,6 +4,7 @@ import { ToolLayout } from "@/components/layout/tool-layout";
 import { Dashboard } from "@/components/dashboard";
 import { MergeTool } from "@/components/merge-tool";
 import { SplitTool } from "@/components/split-tool";
+import { OrganizerTool } from "@/components/organizer-tool";
 
 export function App() {
   return (
@@ -33,6 +34,14 @@ export function App() {
           element={
             <ToolLayout>
               <SplitTool />
+            </ToolLayout>
+          } 
+        />
+        <Route 
+          path="/organize" 
+          element={
+            <ToolLayout>
+              <OrganizerTool />
             </ToolLayout>
           } 
         />

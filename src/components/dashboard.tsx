@@ -1,4 +1,4 @@
-import { Layers, Scissors, ArrowRight } from "lucide-react";
+import { Layers, Scissors, ArrowRight, LayoutGrid } from "lucide-react";
 import { Link } from "react-router-dom";
 import { cn } from "@/lib/utils";
 
@@ -15,7 +15,7 @@ export function Dashboard() {
         </p>
       </div>
 
-      <div className="grid md:grid-cols-2 gap-8">
+      <div className="grid md:grid-cols-3 gap-8">
         <HomeToolCard
           to="/merge"
           title="Merge PDF"
@@ -29,6 +29,13 @@ export function Dashboard() {
           description="Extract pages or split a document into multiple separate files instantly."
           icon={<Scissors className="h-8 w-8" />}
           colorClass="text-emerald-600 bg-emerald-50 dark:bg-emerald-900/20"
+        />
+        <HomeToolCard
+          to="/organize"
+          title="PDF Organizer"
+          description="Group pages, reorder them, and extract parts of your document with ease."
+          icon={<LayoutGrid className="h-8 w-8" />}
+          colorClass="text-purple-600 bg-purple-50 dark:bg-purple-900/20"
         />
       </div>
 

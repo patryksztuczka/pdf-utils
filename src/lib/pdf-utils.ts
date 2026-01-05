@@ -102,3 +102,20 @@ export async function splitPDF(file: File, splitPages: number[]): Promise<Uint8A
 
   return resultPdfs;
 }
+
+/**
+ * Extracts specific pages from a PDF file.
+ * @param file The PDF file.
+ * @param pageIndices Array of 0-based page indices to extract.
+ * @returns A Promise that resolves to the new PDF as a Uint8Array.
+ */
+export async function extractPages(file: File, pageIndices: number[]): Promise<Uint8Array> {
+  const arrayBuffer = await file.arrayBuffer();
+  const sourcePdf = await PDFDocument.load(arrayBuffer);
+  const newPdf = await PDFDocument.create();
+  
+  const copiedPages = await newPdf.copyPages(sourcePdf, pageIndices);
+  copiedPages.forEach((page) => newPdf.addPage(page));
+  
+  return await newPdf.save();
+}
