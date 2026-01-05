@@ -2,56 +2,6 @@ import { Download, FileText, X, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
-interface ToolHeaderProps {
-  title: string;
-  description: string;
-  actionLabel?: string;
-  actionIcon?: any;
-  onAction?: () => void;
-  isActionDisabled?: boolean;
-  isProcessing?: boolean;
-  processingLabel?: string;
-}
-
-export function ToolHeader({
-  title,
-  description,
-  actionLabel,
-  actionIcon: ActionIcon = Download,
-  onAction,
-  isActionDisabled,
-  isProcessing,
-  processingLabel,
-}: ToolHeaderProps) {
-  return (
-    <div className="flex items-center justify-between mb-6 pb-6 border-b border-neutral-100 dark:border-neutral-800 flex-none">
-      <div>
-        <h2 className="text-2xl font-bold text-neutral-900 dark:text-white">
-          {title}
-        </h2>
-        <p className="text-sm text-neutral-500 mt-1">{description}</p>
-      </div>
-      {actionLabel && (
-        <Button
-          size="lg"
-          onClick={onAction}
-          disabled={isActionDisabled || isProcessing}
-          className="gap-2 shadow-lg"
-        >
-          {isProcessing ? (
-            processingLabel || "Processing..."
-          ) : (
-            <>
-              <ActionIcon className="h-4 w-4" />
-              {actionLabel}
-            </>
-          )}
-        </Button>
-      )}
-    </div>
-  );
-}
-
 interface ToolEmptyStateProps {
   icon: any;
   title: string;

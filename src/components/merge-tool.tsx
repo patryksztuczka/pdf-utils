@@ -1,17 +1,60 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useDropzone } from "react-dropzone";
 import { mergePDFs } from "@/lib/pdf-utils";
-import { Plus } from "lucide-react";
+import { Plus, Download } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MergeFileItem } from "./merge-file-item";
 import { PDFPreviewPanel } from "./pdf-preview-panel";
 import { usePDFDocument } from "@/hooks/use-pdf";
-import { ToolHeader, ToolEmptyState, DragOverlay } from "./tool-ui";
+import { ToolEmptyState, DragOverlay } from "./tool-ui";
+import { useToolHeader } from "@/hooks/use-tool-header";
 
 export function MergeTool() {
   const [files, setFiles] = useState<File[]>([]);
   const [selectedFileIndex, setSelectedFileIndex] = useState<number>(0);
   const [isProcessing, setIsProcessing] = useState(false);
+  const { setHeader } = useToolHeader();
+
+  const handleMerge = useCallback(async () => {
+    if (files.length === 0) return;
+
+    setIsProcessing(true);
+    try {
+      const mergedPdfBytes = await mergePDFs(files);
+      const blob = new Blob([mergedPdfBytes as BlobPart], {
+        type: "application/pdf",
+      });
+      const url = URL.createObjectURL(blob);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "merged-document.pdf";
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to merge PDFs", error);
+      alert("Failed to merge PDFs.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [files]);
+
+  useEffect(() => {
+    setHeader({
+      title: "Merge PDFs",
+      description: "Combine multiple files into one document",
+      action: {
+        label: "Merge Files",
+        onClick: handleMerge,
+        disabled: files.length < 2,
+        loading: isProcessing,
+        loadingLabel: "Merging...",
+        icon: Download,
+      },
+    });
+  }, [files, isProcessing, handleMerge, setHeader]);
 
   // Load the PDF proxy for the currently selected file for the preview panel
   const selectedFile = files[selectedFileIndex] || null;
@@ -67,55 +110,17 @@ export function MergeTool() {
     });
   };
 
-  const handleMerge = async () => {
-    if (files.length === 0) return;
-
-    setIsProcessing(true);
-    try {
-      const mergedPdfBytes = await mergePDFs(files);
-      const blob = new Blob([mergedPdfBytes as BlobPart], {
-        type: "application/pdf",
-      });
-      const url = URL.createObjectURL(blob);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = "merged-document.pdf";
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to merge PDFs", error);
-      alert("Failed to merge PDFs.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
-      <ToolHeader
-        title="Merge PDFs"
-        description="Combine multiple files into one document"
-        actionLabel="Merge Files"
-        onAction={handleMerge}
-        isActionDisabled={files.length < 2}
-        isProcessing={isProcessing}
-        processingLabel="Merging..."
-      />
-
       {/* Main Grid Content */}
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 w-full h-full overflow-hidden">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 w-full h-full overflow-hidden">
         {/* Left Column: File List / Dropzone */}
         <div
           {...getRootProps()}
           className={cn(
-            files.length === 0 ? "lg:col-span-3" : "lg:col-span-2",
-            "flex flex-col gap-4 min-h-0 relative rounded-xl border-2 transition-all h-full overflow-hidden",
-            isDragActive
-              ? "border-primary bg-primary/5 border-dashed"
-              : "border-transparent",
+            files.length === 0 ? "lg:col-span-12" : "lg:col-span-8",
+            "flex flex-col min-h-0 relative transition-all h-full overflow-hidden",
+            isDragActive && "bg-primary/5",
           )}
         >
           <input {...getInputProps()} />
@@ -124,16 +129,18 @@ export function MergeTool() {
           {isDragActive && <DragOverlay />}
 
           {files.length === 0 ? (
-            <ToolEmptyState
-              onClick={open}
-              icon={Plus}
-              title="Add PDF Files"
-              description="Click to browse or drag and drop your files here"
-            />
+            <div className="flex-1 p-8">
+              <ToolEmptyState
+                onClick={open}
+                icon={Plus}
+                title="Add PDF Files"
+                description="Click to browse or drag and drop your files here"
+              />
+            </div>
           ) : (
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden">
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-6">
               <div className="flex-none flex items-center justify-between px-1 mb-4">
-                <h3 className="font-semibold text-sm text-neutral-500">
+                <h3 className="font-semibold text-sm text-neutral-500 uppercase tracking-wider">
                   {files.length} Files to merge
                 </h3>
               </div>
@@ -157,7 +164,7 @@ export function MergeTool() {
                   {/* Quick Add Button in Grid */}
                   <div
                     onClick={open}
-                    className="aspect-3/4 rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer flex flex-col items-center justify-center gap-2 text-neutral-400 hover:text-primary transition-all"
+                    className="aspect-3/4 rounded-xl border-2 border-dashed border-neutral-200 dark:border-neutral-800 hover:border-primary/50 hover:bg-primary/5 cursor-pointer flex flex-col items-center justify-center gap-2 text-neutral-400 hover:text-primary transition-all bg-neutral-50/30 dark:bg-neutral-900/30"
                   >
                     <Plus className="h-6 w-6" />
                     <span className="text-xs font-medium">Add File</span>
@@ -170,7 +177,7 @@ export function MergeTool() {
 
         {/* Right Column: Preview */}
         {files.length > 0 && (
-          <div className="hidden lg:block h-full min-h-0 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-sm">
+          <div className="hidden lg:block lg:col-span-4 h-full min-h-0 overflow-hidden border-l border-neutral-200 dark:border-neutral-800">
             <PDFPreviewPanel file={selectedFile} pdf={selectedPdf} />
           </div>
         )}

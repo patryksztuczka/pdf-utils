@@ -104,10 +104,10 @@ export function PDFPreviewPanel({
 
 
   return (
-    <div className="h-full flex flex-col border-l border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50">
-      <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-900">
-        <h3 className="font-semibold text-sm truncate">{file.name}</h3>
-        <p className="text-xs text-neutral-500">{pdf?.numPages || 0} pages</p>
+    <div className="h-full flex flex-col bg-neutral-50/50 dark:bg-neutral-900/50">
+      <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
+        <h3 className="font-semibold text-xs uppercase tracking-wider text-neutral-500 truncate">Preview: {file.name}</h3>
+        <p className="text-[10px] text-neutral-400 mt-0.5">{pdf?.numPages || 0} pages</p>
       </div>
 
       <div

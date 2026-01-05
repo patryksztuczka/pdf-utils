@@ -16,7 +16,8 @@ import JSZip from "jszip";
 import { v4 as uuidv4 } from "uuid";
 import { usePDFDocument } from "@/hooks/use-pdf";
 import { PDFPreviewPanel } from "./pdf-preview-panel";
-import { ToolHeader, ToolEmptyState, DragOverlay, SelectedFileCard } from "./tool-ui";
+import { ToolEmptyState, DragOverlay, SelectedFileCard } from "./tool-ui";
+import { useToolHeader } from "@/hooks/use-tool-header";
 
 interface SplitPoint {
   id: string;
@@ -33,6 +34,78 @@ export function SplitTool() {
     page: number;
     timestamp: number;
   } | null>(null);
+  const { setHeader } = useToolHeader();
+
+  const getValidSortedSplitPages = useCallback(() => {
+    return splitPoints
+      .map((sp) => sp.page)
+      .filter(
+        (p): p is number => typeof p === "number" && p >= 1 && p < totalPages,
+      )
+      .sort((a, b) => a - b)
+      .filter((item, index, array) => array.indexOf(item) === index);
+  }, [splitPoints, totalPages]);
+
+  const handleSplit = useCallback(async () => {
+    if (!file) return;
+    const validPages = getValidSortedSplitPages();
+    if (validPages.length === 0) return;
+
+    setIsProcessing(true);
+    try {
+      const pdfBytesArray = await splitPDF(file, validPages);
+
+      const zip = new JSZip();
+      pdfBytesArray.forEach((bytes, index) => {
+        zip.file(
+          `${file.name.replace(".pdf", "")}-part${index + 1}.pdf`,
+          bytes,
+        );
+      });
+
+      const content = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(content);
+
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${file.name.replace(".pdf", "")}-split.zip`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error("Failed to split PDF", error);
+      alert("Failed to split PDF.");
+    } finally {
+      setIsProcessing(false);
+    }
+  }, [file, getValidSortedSplitPages]);
+
+  const validPages = getValidSortedSplitPages();
+  const hasInvalidOrder = splitPoints.some((sp, index) => {
+    if (index === 0) return false;
+    const prev = splitPoints[index - 1];
+    return (
+      typeof sp.page === "number" &&
+      typeof prev.page === "number" &&
+      sp.page <= prev.page
+    );
+  });
+
+  useEffect(() => {
+    setHeader({
+      title: "Split PDF",
+      description: "Separate one file into multiple parts",
+      action: {
+        label: "Split & Download Zip",
+        onClick: handleSplit,
+        disabled: !file || validPages.length === 0 || totalPages <= 1 || hasInvalidOrder,
+        loading: isProcessing,
+        loadingLabel: "Processing...",
+        icon: Scissors,
+      },
+    });
+  }, [file, validPages.length, totalPages, hasInvalidOrder, isProcessing, handleSplit, setHeader]);
 
   // Load PDF for preview
   const { pdf } = usePDFDocument(file);
@@ -100,85 +173,16 @@ export function SplitTool() {
     );
   };
 
-  const getValidSortedSplitPages = () => {
-    return splitPoints
-      .map((sp) => sp.page)
-      .filter(
-        (p): p is number => typeof p === "number" && p >= 1 && p < totalPages,
-      )
-      .sort((a, b) => a - b)
-      .filter((item, index, array) => array.indexOf(item) === index);
-  };
-
-  const handleSplit = async () => {
-    if (!file) return;
-    const validPages = getValidSortedSplitPages();
-    if (validPages.length === 0) return;
-
-    setIsProcessing(true);
-    try {
-      const pdfBytesArray = await splitPDF(file, validPages);
-
-      const zip = new JSZip();
-      pdfBytesArray.forEach((bytes, index) => {
-        zip.file(
-          `${file.name.replace(".pdf", "")}-part${index + 1}.pdf`,
-          bytes,
-        );
-      });
-
-      const content = await zip.generateAsync({ type: "blob" });
-      const url = URL.createObjectURL(content);
-
-      const link = document.createElement("a");
-      link.href = url;
-      link.download = `${file.name.replace(".pdf", "")}-split.zip`;
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error("Failed to split PDF", error);
-      alert("Failed to split PDF.");
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
-  const validPages = getValidSortedSplitPages();
-  const hasInvalidOrder = splitPoints.some((sp, index) => {
-    if (index === 0) return false;
-    const prev = splitPoints[index - 1];
-    return (
-      typeof sp.page === "number" &&
-      typeof prev.page === "number" &&
-      sp.page <= prev.page
-    );
-  });
-
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
-      <ToolHeader
-        title="Split PDF"
-        description="Separate one file into multiple parts"
-        actionLabel="Split & Download Zip"
-        actionIcon={Scissors}
-        onAction={handleSplit}
-        isActionDisabled={!file || validPages.length === 0 || totalPages <= 1 || hasInvalidOrder}
-        isProcessing={isProcessing}
-        processingLabel="Processing..."
-      />
-
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-3 gap-6 w-full h-full overflow-hidden">
+      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 w-full h-full overflow-hidden">
         {/* Left Column: File List / Dropzone */}
         <div
           {...getRootProps()}
           className={cn(
-            !file ? "lg:col-span-3" : "lg:col-span-2",
-            "flex flex-col gap-6 min-h-0 relative rounded-xl border-2 transition-all h-full overflow-hidden",
-            isDragActive
-              ? "border-primary bg-primary/5 border-dashed"
-              : "border-transparent",
+            !file ? "lg:col-span-12" : "lg:col-span-8",
+            "flex flex-col min-h-0 relative transition-all h-full overflow-hidden",
+            isDragActive && "bg-primary/5",
           )}
         >
           <input {...getInputProps()} />
@@ -187,27 +191,31 @@ export function SplitTool() {
           {isDragActive && <DragOverlay label="Drop PDF to split it" />}
 
           {!file ? (
-            <ToolEmptyState
-              onClick={open}
-              icon={Scissors}
-              title="Select PDF to Split"
-              description="Click to browse or drag and drop your file here"
-            />
-          ) : (
-            <div className="flex-1 flex flex-col gap-6 min-h-0 overflow-hidden">
-              <SelectedFileCard
-                file={file}
-                onRemove={removeFile}
-                isLoading={isLoadingFile}
-                subtext={isLoadingFile ? "Counting pages..." : `${totalPages} pages`}
+            <div className="flex-1 p-8">
+              <ToolEmptyState
+                onClick={open}
+                icon={Scissors}
+                title="Select PDF to Split"
+                description="Click to browse or drag and drop your file here"
               />
+            </div>
+          ) : (
+            <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-6">
+              <div className="mb-6">
+                 <SelectedFileCard
+                  file={file}
+                  onRemove={removeFile}
+                  isLoading={isLoadingFile}
+                  subtext={isLoadingFile ? "Counting pages..." : `${totalPages} pages`}
+                />
+              </div>
 
               <Card className="flex-1 min-h-0 flex flex-col border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
                 <CardContent className="p-4 flex-1 flex flex-col min-h-0 overflow-hidden">
                   {!isLoadingFile && totalPages > 1 ? (
                     <div className="flex flex-col h-full overflow-hidden">
                       <div className="flex items-center justify-between mb-4">
-                        <label className="text-sm font-semibold text-neutral-900 dark:text-white">
+                        <label className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider">
                           Split Points
                         </label>
                         <Button
@@ -221,7 +229,7 @@ export function SplitTool() {
                         </Button>
                       </div>
 
-                      <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-0">
+                      <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-0 pb-4">
                         {splitPoints.map((sp, index) => {
                           const prevPage =
                             index > 0 &&
@@ -353,7 +361,7 @@ export function SplitTool() {
 
         {/* Right Column: Preview */}
         {file && (
-          <div className="hidden lg:block h-full min-h-0 rounded-xl overflow-hidden border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shadow-sm">
+          <div className="hidden lg:block lg:col-span-4 h-full min-h-0 border-l border-neutral-200 dark:border-neutral-800">
             <PDFPreviewPanel
               file={file}
               pdf={pdf}
