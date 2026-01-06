@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { renderPageToDataURL } from '@/lib/pdf-render';
 import type { PDFDocumentProxy } from 'pdfjs-dist';
 import { FileText } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 interface PDFThumbnailProps {
   pdf: PDFDocumentProxy | null;
@@ -36,15 +37,19 @@ export function PDFThumbnail({ pdf, pageNumber = 1, scale = 0.5, className }: PD
 
   if (!pdf || loading || !imageUrl) {
     return (
-      <div className={`flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700 ${className}`}>
+      <div className={cn(
+        "flex items-center justify-center bg-neutral-100 dark:bg-neutral-800 rounded border border-neutral-200 dark:border-neutral-700 aspect-[1/1.414]",
+        className
+      )}>
         <FileText className="text-neutral-400 h-8 w-8" />
       </div>
     );
   }
 
+
   return (
-    <div className={`overflow-hidden rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900 ${className}`}>
-      <img src={imageUrl} alt={`Page ${pageNumber}`} className="w-full h-full object-contain" />
+    <div className={cn("overflow-hidden rounded border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-neutral-900", className)}>
+      <img src={imageUrl} alt={`Page ${pageNumber}`} className="w-full h-auto block" />
     </div>
   );
 }

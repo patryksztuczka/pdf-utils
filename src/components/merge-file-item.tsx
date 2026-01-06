@@ -37,7 +37,10 @@ export function MergeFileItem({
       )}
       onClick={onSelect}
     >
-      <div className="relative aspect-3/4 w-full bg-neutral-100 dark:bg-neutral-800 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800">
+      <div className={cn(
+        "relative w-full bg-neutral-100 dark:bg-neutral-800 rounded-lg overflow-hidden border border-neutral-100 dark:border-neutral-800",
+        loading && "aspect-[1/1.414]"
+      )}>
         {loading ? (
           <div className="absolute inset-0 flex items-center justify-center">
             <Loader2 className="h-5 w-5 animate-spin text-neutral-400" />
@@ -45,7 +48,7 @@ export function MergeFileItem({
         ) : (
           <PDFThumbnail
             pdf={pdf}
-            className="w-full h-full border-none rounded-none"
+            className="w-full h-auto border-none rounded-none"
             scale={0.4}
           />
         )}

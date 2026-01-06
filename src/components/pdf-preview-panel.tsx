@@ -61,7 +61,7 @@ export function PDFPreviewPanel({
         if (renderedPagesRef.current.has(i)) continue; // Skip if already rendered
 
         try {
-          const url = await renderPageToDataURL(pdf, i, 0.6);
+          const url = await renderPageToDataURL(pdf, i, 1.5);
           if (active) {
             renderedPagesRef.current.add(i);
             setPageImages((prev) => ({ ...prev, [i]: url }));
@@ -136,16 +136,15 @@ export function PDFPreviewPanel({
               <div
                 className={cn(
                   "rounded-lg overflow-hidden border border-neutral-200 dark:border-neutral-700 bg-white dark:bg-black shadow-sm transition-shadow hover:shadow-md w-full relative",
-                  "aspect-[1/1.414]", // A4 aspect ratio
                   !pageImages[page] &&
-                    "flex items-center justify-center bg-neutral-100 dark:bg-neutral-800",
+                    "aspect-[1/1.414] flex items-center justify-center bg-neutral-100 dark:bg-neutral-800",
                 )}
               >
                 {pageImages[page] ? (
                   <img
                     src={pageImages[page]}
                     alt={`Page ${page}`}
-                    className="w-full h-auto"
+                    className="w-full h-auto block"
                     loading="lazy"
                   />
                 ) : (

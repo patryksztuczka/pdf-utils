@@ -1,21 +1,41 @@
 import { Link, useLocation } from "react-router-dom";
 import { cn } from "@/lib/utils";
-import { Layers, Scissors, LogOut, FileText, LayoutGrid } from "lucide-react";
+import { Layers, Scissors, LogOut, FileText, LayoutGrid, X } from "lucide-react";
+import { Button } from "@/components/ui/button";
 
-export function Sidebar() {
+interface SidebarProps {
+  isOpen?: boolean;
+  onClose?: () => void;
+}
+
+export function Sidebar({ isOpen, onClose }: SidebarProps) {
   const location = useLocation();
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="w-64 h-screen bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 flex flex-col fixed left-0 top-0 z-40">
+    <div className={cn(
+      "w-64 h-screen bg-white dark:bg-neutral-950 border-r border-neutral-200 dark:border-neutral-800 flex flex-col fixed left-0 top-0 z-40 transition-transform duration-300 lg:translate-x-0",
+      isOpen ? "translate-x-0" : "-translate-x-full"
+    )}>
       {/* Logo Area - Minimalist */}
-      <div className="h-16 flex items-center px-6">
+      <div className="h-20 flex items-center justify-between px-6">
         <Link to="/" className="flex items-center gap-3">
           <div className="h-8 w-8 rounded-lg bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 flex items-center justify-center">
             <FileText className="h-5 w-5" />
           </div>
           <span className="font-semibold text-neutral-900 dark:text-white">PDF Util</span>
         </Link>
+        
+        {onClose && (
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            className="lg:hidden" 
+            onClick={onClose}
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        )}
       </div>
 
       <div className="flex-1 flex flex-col py-6">

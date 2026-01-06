@@ -7,8 +7,6 @@ import {
   Download,
   Trash2,
   Check,
-  Square,
-  CheckSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { v4 as uuidv4 } from "uuid";
@@ -16,6 +14,12 @@ import { usePDFDocument } from "@/hooks/use-pdf";
 import { PDFThumbnail } from "./pdf-thumbnail";
 import { ToolEmptyState, DragOverlay, SelectedFileCard } from "./tool-ui";
 import { useToolHeader } from "@/hooks/use-tool-header";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import { useIsMobile } from "@/hooks/use-mobile";
 import JSZip from "jszip";
 
 interface PageGroup {
@@ -33,9 +37,17 @@ export function OrganizerTool() {
   const [isProcessing, setIsProcessing] = useState(false);
   const [isLoadingFile, setIsLoadingFile] = useState(false);
   const { setHeader } = useToolHeader();
+  const isMobile = useIsMobile();
 
   const selectedGroup = groups.find(g => g.id === selectedGroupId);
   const previewPages = selectedGroup ? selectedGroup.pages : selectedPage ? [selectedPage] : [];
+  
+  const actualGroups = groups.filter(g => g.pages.length > 1);
+  const subtext = isLoadingFile 
+    ? "Processing..." 
+    : actualGroups.length > 0 
+      ? `${totalPages} pages (${actualGroups.length} groups)`
+      : `${totalPages} pages`;
 
   const handleDownloadZip = useCallback(async () => {
     if (!file || checkedGroupIds.size === 0) return;
@@ -227,145 +239,161 @@ export function OrganizerTool() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 w-full h-full overflow-hidden">
-        <div
-          {...getRootProps()}
-          className={cn(
-            !file ? "lg:col-span-12" : "lg:col-span-7",
-            "flex-1 flex flex-col min-h-0 relative transition-all h-full overflow-hidden",
-            isDragActive && "bg-primary/5",
-          )}
+      <ResizablePanelGroup
+        key={!file ? "empty" : "with-file"}
+        orientation={isMobile ? "vertical" : "horizontal"}
+        className="flex-1 min-h-0 w-full h-full overflow-hidden"
+      >
+        <ResizablePanel
+          defaultSize={!file ? 100 : 75}
+          minSize={20}
+          className="flex flex-col min-h-0"
         >
-          <input {...getInputProps()} />
+          <div
+            {...getRootProps()}
+            className={cn(
+              "flex-1 flex flex-col min-h-0 relative transition-all h-full overflow-hidden",
+              isDragActive && "bg-primary/5",
+            )}
+          >
+            <input {...getInputProps()} />
 
-          {isDragActive && <DragOverlay label="Drop PDF to organize it" />}
+            {isDragActive && <DragOverlay label="Drop PDF to organize it" />}
 
-          {!file ? (
-            <div className="flex-1 p-8">
-              <ToolEmptyState
-                onClick={open}
-                icon={LayoutGrid}
-                title="Select PDF to Organize"
-                description="Group pages, reorder them, and extract parts of your document"
-              />
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-6">
-              <div className="mb-6 flex items-center justify-between gap-4">
-                <div className="flex-1 min-w-0">
-                  <SelectedFileCard
-                    file={file}
-                    onRemove={removeFile}
-                    isLoading={isLoadingFile}
-                    subtext={isLoadingFile ? "Processing..." : `${totalPages} pages organized into ${groups.length} groups`}
-                  />
-                </div>
-                
-                <div className="flex items-center gap-2 shrink-0">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={selectAll}
-                    className="h-9 gap-2 px-3 text-xs font-semibold"
-                  >
-                    <CheckSquare className="h-4 w-4" />
-                    Select All
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={deselectAll}
-                    disabled={checkedGroupIds.size === 0}
-                    className="h-9 gap-2 px-3 text-xs font-semibold"
-                  >
-                    <Square className="h-4 w-4" />
-                    Clear
-                  </Button>
-                </div>
+            {!file ? (
+              <div className="flex-1 p-8">
+                <ToolEmptyState
+                  onClick={open}
+                  icon={LayoutGrid}
+                  title="Select PDF to Organize"
+                  description="Group pages, reorder them, and extract parts of your document"
+                />
               </div>
+            ) : (
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-6">
+                <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+                  <div className="flex-1 min-w-[200px]">
+                    <SelectedFileCard
+                      file={file}
+                      onRemove={removeFile}
+                      isLoading={isLoadingFile}
+                      subtext={subtext}
+                    />
+                  </div>
+                  
+                  <div className="flex items-center gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={selectAll}
+                      className="h-9 px-3 text-xs font-semibold"
+                    >
+                      Select All
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={deselectAll}
+                      disabled={checkedGroupIds.size === 0}
+                      className="h-9 px-3 text-xs font-semibold"
+                    >
+                      Clear
+                    </Button>
+                  </div>
+                </div>
 
               <div className="flex-1 overflow-y-auto pr-2 pb-10">
-                <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 xl:grid-cols-5 gap-y-10 gap-x-6">
+                <div className="flex flex-wrap gap-x-6 gap-y-10">
                   {groups.map((group) => (
-                    <GroupCard
-                      key={group.id}
-                      group={group}
-                      pdf={pdf}
-                      isSelected={selectedGroupId === group.id}
-                      isChecked={checkedGroupIds.has(group.id)}
-                      onSelect={() => setSelectedGroupId(group.id)}
-                      onToggleCheck={() => toggleCheckGroup(group.id)}
-                      onDownloadGroup={() => handleDownloadGroup(group)}
-                      onDownloadPage={handleDownloadSinglePage}
-                      onMovePage={movePageToGroup}
-                      onUngroupPage={ungroupPage}
-                      isProcessing={isProcessing}
-                    />
+                    <div key={group.id} className="w-40 shrink-0">
+                      <GroupCard
+                        group={group}
+                        pdf={pdf}
+                        isSelected={selectedGroupId === group.id}
+                        isChecked={checkedGroupIds.has(group.id)}
+                        onSelect={() => setSelectedGroupId(group.id)}
+                        onToggleCheck={() => toggleCheckGroup(group.id)}
+                        onDownloadGroup={() => handleDownloadGroup(group)}
+                        onDownloadPage={handleDownloadSinglePage}
+                        onMovePage={movePageToGroup}
+                        onUngroupPage={ungroupPage}
+                        isProcessing={isProcessing}
+                      />
+                    </div>
                   ))}
                 </div>
               </div>
-            </div>
-          )}
-        </div>
-
-        {file && (
-          <div className="hidden lg:flex lg:col-span-5 h-full min-h-0 flex-col overflow-hidden border-l border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
-            <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-900/50">
-              <h3 className="font-semibold text-xs uppercase tracking-wider text-neutral-500">
-                {selectedGroup ? `Group Preview (${selectedGroup.pages.length} Pages)` : 'Page Preview'}
-              </h3>
-              <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded">
-                {selectedGroup ? `${selectedGroup.pages.length} PAGES` : `PAGE ${selectedPage}`}
-              </span>
-            </div>
-            
-            <div className="flex-1 overflow-y-auto p-8 bg-neutral-50/30 dark:bg-neutral-900/30">
-               <div className="max-w-md mx-auto space-y-8">
-                {previewPages.length > 0 ? (
-                  previewPages.map((pageNumber) => (
-                    <div key={pageNumber} className="space-y-2">
-                       <div className="flex items-center justify-between px-1">
-                          <span className="text-[10px] font-bold text-neutral-400">PAGE {pageNumber}</span>
-                          <Button 
-                            variant="ghost" 
-                            size="icon" 
-                            className="h-6 w-6 text-neutral-400 hover:text-primary"
-                            onClick={() => handleDownloadSinglePage(pageNumber)}
-                          >
-                            <Download className="h-3 w-3" />
-                          </Button>
-                       </div>
-                       <PDFThumbnail 
-                        pdf={pdf} 
-                        pageNumber={pageNumber} 
-                        scale={1} 
-                        className="w-full h-auto shadow-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black"
-                      />
-                    </div>
-                  ))
-                ) : (
-                  <div className="h-full flex items-center justify-center text-neutral-400 text-sm italic">
-                    Select a group or page to preview
-                  </div>
-                )}
-               </div>
-            </div>
-            
-            {selectedGroup && (
-              <div className="p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950">
-                <Button 
-                  className="w-full gap-2 font-semibold" 
-                  onClick={() => handleDownloadGroup(selectedGroup)}
-                  disabled={isProcessing}
-                >
-                  <Download className="h-4 w-4" />
-                  Save Group as PDF
-                </Button>
               </div>
             )}
           </div>
+        </ResizablePanel>
+
+        {file && (
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize={25}
+              minSize={15}
+              className="h-full min-h-0 flex flex-col overflow-hidden bg-white dark:bg-neutral-950"
+            >
+              <div className="p-4 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between bg-neutral-50/50 dark:bg-neutral-900/50 shrink-0">
+                <h3 className="font-semibold text-xs uppercase tracking-wider text-neutral-500">
+                  {selectedGroup && selectedGroup.pages.length > 1 ? `Group Preview (${selectedGroup.pages.length} Pages)` : 'Page Preview'}
+                </h3>
+                <span className="text-[10px] font-bold text-neutral-500 bg-neutral-100 dark:bg-neutral-800 px-2 py-1 rounded">
+                  {selectedGroup && selectedGroup.pages.length > 1 ? `${selectedGroup.pages.length} PAGES` : `PAGE ${selectedGroup?.pages[0] || selectedPage}`}
+                </span>
+              </div>
+              
+              <div className="flex-1 overflow-y-auto p-8 bg-neutral-50/30 dark:bg-neutral-900/30">
+                 <div className="mx-auto space-y-8">
+                  {previewPages.length > 0 ? (
+                    previewPages.map((pageNumber) => (
+                      <div key={pageNumber} className="space-y-2">
+                         <div className="flex items-center justify-between px-1">
+                            <span className="text-[10px] font-bold text-neutral-400">PAGE {pageNumber}</span>
+                            <Button 
+                              variant="ghost" 
+                              size="icon" 
+                              className="h-6 w-6 text-neutral-400 hover:text-primary"
+                              onClick={() => handleDownloadSinglePage(pageNumber)}
+                            >
+                              <Download className="h-3 w-3" />
+                            </Button>
+                         </div>
+                         <PDFThumbnail 
+                          pdf={pdf} 
+                          pageNumber={pageNumber} 
+                          scale={1.5} 
+                          className="w-full h-auto shadow-xl border border-neutral-200 dark:border-neutral-800 bg-white dark:bg-black"
+                        />
+                      </div>
+                    ))
+                  ) : (
+                    <div className="h-full flex items-center justify-center text-neutral-400 text-sm italic">
+                      Select a group or page to preview
+                    </div>
+                  )}
+                 </div>
+              </div>
+              
+              {selectedGroup && (
+                <div className="p-4 border-t border-neutral-200 dark:border-neutral-800 bg-white dark:bg-neutral-950 shrink-0">
+                  <Button 
+                    className="w-full gap-2 font-semibold" 
+                    onClick={() => handleDownloadGroup(selectedGroup)}
+                    disabled={isProcessing}
+                  >
+                    <Download className="h-4 w-4" />
+                    {selectedGroup.pages.length > 1 ? "Save Group as PDF" : "Save Page as PDF"}
+                  </Button>
+                </div>
+              )}
+            </ResizablePanel>
+
+          </>
         )}
-      </div>
+      </ResizablePanelGroup>
     </div>
   );
 }
@@ -429,7 +457,7 @@ function GroupCard({
       onDrop={handleDrop}
       onClick={onSelect}
     >
-      <div className="relative w-full aspect-[1/1.414]">
+      <div className="relative w-full">
         <div 
           className={cn(
             "absolute top-2 left-2 z-50 h-5 w-5 rounded-md border flex items-center justify-center transition-all cursor-pointer",
@@ -534,7 +562,7 @@ function DraggablePageThumbnail({
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       className={cn(
-        "relative w-full h-full cursor-pointer group/thumb",
+        "relative w-full cursor-pointer group/thumb",
         isDragging && "opacity-40"
       )}
       onClick={onSelect}
@@ -543,7 +571,7 @@ function DraggablePageThumbnail({
         pdf={pdf} 
         pageNumber={page} 
         scale={0.3} 
-        className="w-full h-full border-0 rounded-none shadow-none" 
+        className="w-full h-auto border-0 rounded-none shadow-none" 
       />
       
       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/thumb:opacity-100 transition-opacity flex flex-col items-center justify-center gap-2">

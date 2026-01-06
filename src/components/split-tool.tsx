@@ -18,6 +18,12 @@ import { usePDFDocument } from "@/hooks/use-pdf";
 import { PDFPreviewPanel } from "./pdf-preview-panel";
 import { ToolEmptyState, DragOverlay, SelectedFileCard } from "./tool-ui";
 import { useToolHeader } from "@/hooks/use-tool-header";
+import {
+  ResizableHandle,
+  ResizablePanel,
+  ResizablePanelGroup,
+} from "@/components/ui/resizable";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface SplitPoint {
   id: string;
@@ -35,6 +41,7 @@ export function SplitTool() {
     timestamp: number;
   } | null>(null);
   const { setHeader } = useToolHeader();
+  const isMobile = useIsMobile();
 
   const getValidSortedSplitPages = useCallback(() => {
     return splitPoints
@@ -175,202 +182,218 @@ export function SplitTool() {
 
   return (
     <div className="flex-1 flex flex-col min-h-0 h-full overflow-hidden">
-      <div className="flex-1 min-h-0 grid grid-cols-1 lg:grid-cols-12 w-full h-full overflow-hidden">
-        {/* Left Column: File List / Dropzone */}
-        <div
-          {...getRootProps()}
-          className={cn(
-            !file ? "lg:col-span-12" : "lg:col-span-8",
-            "flex flex-col min-h-0 relative transition-all h-full overflow-hidden",
-            isDragActive && "bg-primary/5",
-          )}
+      <ResizablePanelGroup
+        key={!file ? "empty" : "with-file"}
+        orientation={isMobile ? "vertical" : "horizontal"}
+        className="flex-1 min-h-0 w-full h-full overflow-hidden"
+      >
+        <ResizablePanel
+          defaultSize={!file ? 100 : 75}
+          minSize={20}
+          className="flex flex-col min-h-0"
         >
-          <input {...getInputProps()} />
+          {/* Left Column: File List / Dropzone */}
+          <div
+            {...getRootProps()}
+            className={cn(
+              "flex flex-col min-h-0 relative transition-all h-full overflow-hidden",
+              isDragActive && "bg-primary/5",
+            )}
+          >
+            <input {...getInputProps()} />
 
-          {/* Drag Overlay */}
-          {isDragActive && <DragOverlay label="Drop PDF to split it" />}
+            {/* Drag Overlay */}
+            {isDragActive && <DragOverlay label="Drop PDF to split it" />}
 
-          {!file ? (
-            <div className="flex-1 p-8">
-              <ToolEmptyState
-                onClick={open}
-                icon={Scissors}
-                title="Select PDF to Split"
-                description="Click to browse or drag and drop your file here"
-              />
-            </div>
-          ) : (
-            <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-6">
-              <div className="mb-6">
-                 <SelectedFileCard
-                  file={file}
-                  onRemove={removeFile}
-                  isLoading={isLoadingFile}
-                  subtext={isLoadingFile ? "Counting pages..." : `${totalPages} pages`}
+            {!file ? (
+              <div className="flex-1 p-8">
+                <ToolEmptyState
+                  onClick={open}
+                  icon={Scissors}
+                  title="Select PDF to Split"
+                  description="Click to browse or drag and drop your file here"
                 />
               </div>
+            ) : (
+              <div className="flex-1 flex flex-col min-h-0 overflow-hidden p-6">
+                <div className="mb-6">
+                   <SelectedFileCard
+                    file={file}
+                    onRemove={removeFile}
+                    isLoading={isLoadingFile}
+                    subtext={isLoadingFile ? "Counting pages..." : `${totalPages} pages`}
+                  />
+                </div>
 
-              <Card className="flex-1 min-h-0 flex flex-col border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
-                <CardContent className="p-4 flex-1 flex flex-col min-h-0 overflow-hidden">
-                  {!isLoadingFile && totalPages > 1 ? (
-                    <div className="flex flex-col h-full overflow-hidden">
-                      <div className="flex items-center justify-between mb-4">
-                        <label className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider">
-                          Split Points
-                        </label>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={addSplitPoint}
-                          className="h-7 gap-1 text-xs"
-                        >
-                          <Plus className="h-3 w-3" />
-                          Add Point
-                        </Button>
-                      </div>
+                <Card className="flex-1 min-h-0 flex flex-col border-neutral-200 dark:border-neutral-800 overflow-hidden shadow-sm">
+                  <CardContent className="p-4 flex-1 flex flex-col min-h-0 overflow-hidden">
+                    {!isLoadingFile && totalPages > 1 ? (
+                      <div className="flex flex-col h-full overflow-hidden">
+                        <div className="flex items-center justify-between mb-4">
+                          <label className="text-sm font-semibold text-neutral-900 dark:text-white uppercase tracking-wider">
+                            Split Points
+                          </label>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={addSplitPoint}
+                            className="h-7 gap-1 text-xs"
+                          >
+                            <Plus className="h-3 w-3" />
+                            Add Point
+                          </Button>
+                        </div>
 
-                      <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-0 pb-4">
-                        {splitPoints.map((sp, index) => {
-                          const prevPage =
-                            index > 0 &&
-                            typeof splitPoints[index - 1].page === "number"
-                              ? (splitPoints[index - 1].page as number)
-                              : 0;
-                          const minPage = prevPage + 1;
-                          const isInvalidOrder =
-                            typeof sp.page === "number" && sp.page <= prevPage;
+                        <div className="flex-1 overflow-y-auto pr-2 space-y-3 min-h-0 pb-4">
+                          {splitPoints.map((sp, index) => {
+                            const prevPage =
+                              index > 0 &&
+                              typeof splitPoints[index - 1].page === "number"
+                                ? (splitPoints[index - 1].page as number)
+                                : 0;
+                            const minPage = prevPage + 1;
+                            const isInvalidOrder =
+                              typeof sp.page === "number" && sp.page <= prevPage;
 
-                          // Calculate range for this part
-                          const startPage = prevPage + 1;
-                          const endPage =
-                            typeof sp.page === "number" ? sp.page : "?";
+                            // Calculate range for this part
+                            const startPage = prevPage + 1;
+                            const endPage =
+                              typeof sp.page === "number" ? sp.page : "?";
 
-                          return (
-                            <div
-                              key={sp.id}
-                              className="flex flex-col sm:flex-row gap-4 items-start sm:items-center animate-in slide-in-from-left-2 fade-in duration-200 p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50"
-                            >
-                              <div className="flex items-center gap-2 flex-1 w-full">
-                                <span className="text-sm font-medium w-20 text-neutral-500">
-                                  Part {index + 1}
-                                </span>
-                                <div className="flex-1 relative flex items-center gap-2">
-                                  <Input
-                                    type="number"
-                                    min={minPage}
-                                    max={totalPages - 1}
-                                    placeholder="#"
-                                    value={sp.page}
-                                    onChange={(e) =>
-                                      updateSplitPoint(sp.id, e.target.value)
-                                    }
-                                    className={cn(
-                                      isInvalidOrder &&
-                                        "border-red-500 focus-visible:ring-red-500",
-                                      "bg-white dark:bg-neutral-950",
-                                    )}
-                                  />
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-9 w-9 text-neutral-400 hover:text-primary shrink-0"
-                                    title="Show in Preview"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      if (typeof sp.page === "number") {
-                                        setActiveSplitPage({
-                                          page: sp.page,
-                                          timestamp: Date.now(),
-                                        });
-                                      }
-                                    }}
-                                  >
-                                    <Eye className="h-4 w-4" />
-                                  </Button>
-                                </div>
-                              </div>
-
-                              <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-                                <div className="px-3 py-1.5 rounded-md bg-white dark:bg-neutral-950 text-xs text-neutral-500 font-mono whitespace-nowrap border border-neutral-100 dark:border-neutral-800 shadow-sm">
-                                  Pages {startPage} - {endPage}
-                                </div>
-                                {splitPoints.length > 1 && (
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-9 w-9 text-neutral-400 hover:text-red-500 shrink-0"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      removeSplitPoint(sp.id)
-                                    }}
-                                  >
-                                    <Trash2 className="h-4 w-4" />
-                                  </Button>
-                                )}
-                              </div>
-                            </div>
-                          );
-                        })}
-
-                        {/* Final Part Display */}
-                        {(() => {
-                          const lastSp = splitPoints[splitPoints.length - 1];
-                          const lastPage =
-                            typeof lastSp?.page === "number" ? lastSp.page : 0;
-                          if (lastPage < totalPages) {
                             return (
-                              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-3 rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30 text-neutral-500">
-                                <div className="flex items-center gap-2 flex-1">
-                                  <span className="text-sm font-medium w-20">
-                                    Part {splitPoints.length + 1}
+                              <div
+                                key={sp.id}
+                                className="flex flex-col sm:flex-row gap-4 items-start sm:items-center animate-in slide-in-from-left-2 fade-in duration-200 p-3 rounded-lg border border-neutral-100 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/50"
+                              >
+                                <div className="flex items-center gap-2 flex-1 w-full">
+                                  <span className="text-sm font-medium w-20 text-neutral-500">
+                                    Part {index + 1}
                                   </span>
-                                  <span className="text-xs italic">
-                                    Remaining pages
-                                  </span>
+                                  <div className="flex-1 relative flex items-center gap-2">
+                                    <Input
+                                      type="number"
+                                      min={minPage}
+                                      max={totalPages - 1}
+                                      placeholder="#"
+                                      value={sp.page}
+                                      onChange={(e) =>
+                                        updateSplitPoint(sp.id, e.target.value)
+                                      }
+                                      className={cn(
+                                        isInvalidOrder &&
+                                          "border-red-500 focus-visible:ring-red-500",
+                                        "bg-white dark:bg-neutral-950",
+                                      )}
+                                    />
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9 text-neutral-400 hover:text-primary shrink-0"
+                                      title="Show in Preview"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        if (typeof sp.page === "number") {
+                                          setActiveSplitPage({
+                                            page: sp.page,
+                                            timestamp: Date.now(),
+                                          });
+                                        }
+                                      }}
+                                    >
+                                      <Eye className="h-4 w-4" />
+                                    </Button>
+                                  </div>
                                 </div>
-                                <div className="px-3 py-1.5 rounded-md bg-white dark:bg-neutral-950 text-xs text-neutral-500 font-mono whitespace-nowrap border border-neutral-100 dark:border-neutral-800 shadow-sm">
-                                  Pages {lastPage + 1} - {totalPages}
+
+                                <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+                                  <div className="px-3 py-1.5 rounded-md bg-white dark:bg-neutral-950 text-xs text-neutral-500 font-mono whitespace-nowrap border border-neutral-100 dark:border-neutral-800 shadow-sm">
+                                    Pages {startPage} - {endPage}
+                                  </div>
+                                  {splitPoints.length > 1 && (
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-9 w-9 text-neutral-400 hover:text-red-500 shrink-0"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        removeSplitPoint(sp.id)
+                                      }}
+                                    >
+                                      <Trash2 className="h-4 w-4" />
+                                    </Button>
+                                  )}
                                 </div>
-                                {splitPoints.length > 1 && (
-                                  <div className="w-9" />
-                                )}{" "}
-                                {/* Spacer to align with delete button */}
                               </div>
                             );
-                          }
-                          return null;
-                        })()}
+                          })}
+
+                          {/* Final Part Display */}
+                          {(() => {
+                            const lastSp = splitPoints[splitPoints.length - 1];
+                            const lastPage =
+                              typeof lastSp?.page === "number" ? lastSp.page : 0;
+                            if (lastPage < totalPages) {
+                              return (
+                                <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center p-3 rounded-lg border border-dashed border-neutral-200 dark:border-neutral-800 bg-neutral-50/50 dark:bg-neutral-900/30 text-neutral-500">
+                                  <div className="flex items-center gap-2 flex-1">
+                                    <span className="text-sm font-medium w-20">
+                                      Part {splitPoints.length + 1}
+                                    </span>
+                                    <span className="text-xs italic">
+                                      Remaining pages
+                                    </span>
+                                  </div>
+                                  <div className="px-3 py-1.5 rounded-md bg-white dark:bg-neutral-950 text-xs text-neutral-500 font-mono whitespace-nowrap border border-neutral-100 dark:border-neutral-800 shadow-sm">
+                                    Pages {lastPage + 1} - {totalPages}
+                                  </div>
+                                  {splitPoints.length > 1 && (
+                                    <div className="w-9" />
+                                  )}{" "}
+                                  {/* Spacer to align with delete button */}
+                                </div>
+                              );
+                            }
+                            return null;
+                          })()}
+                        </div>
                       </div>
-                    </div>
-                  ) : !isLoadingFile ? (
-                    <div className="flex flex-col items-center justify-center h-full py-12 text-center">
-                      <div className="p-3 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 mb-4">
-                        <AlertCircle className="h-6 w-6" />
+                    ) : !isLoadingFile ? (
+                      <div className="flex flex-col items-center justify-center h-full py-12 text-center">
+                        <div className="p-3 rounded-full bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 mb-4">
+                          <AlertCircle className="h-6 w-6" />
+                        </div>
+                        <h4 className="font-semibold text-neutral-900 dark:text-white mb-1">Document too short</h4>
+                        <p className="text-sm text-neutral-500 max-w-xs">
+                          This document only has one page and cannot be split further.
+                        </p>
                       </div>
-                      <h4 className="font-semibold text-neutral-900 dark:text-white mb-1">Document too short</h4>
-                      <p className="text-sm text-neutral-500 max-w-xs">
-                        This document only has one page and cannot be split further.
-                      </p>
-                    </div>
-                  ) : null}
-                </CardContent>
-              </Card>
-            </div>
-          )}
-        </div>
+                    ) : null}
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        </ResizablePanel>
 
         {/* Right Column: Preview */}
         {file && (
-          <div className="hidden lg:block lg:col-span-4 h-full min-h-0 border-l border-neutral-200 dark:border-neutral-800">
-            <PDFPreviewPanel
-              file={file}
-              pdf={pdf}
-              splitPoints={validPages}
-              scrollToPage={activeSplitPage}
-            />
-          </div>
+          <>
+            <ResizableHandle withHandle />
+            <ResizablePanel
+              defaultSize={25}
+              minSize={15}
+              className="h-full min-h-0"
+            >
+              <PDFPreviewPanel
+                file={file}
+                pdf={pdf}
+                splitPoints={validPages}
+                scrollToPage={activeSplitPage}
+              />
+            </ResizablePanel>
+          </>
         )}
-      </div>
+      </ResizablePanelGroup>
     </div>
   );
 }

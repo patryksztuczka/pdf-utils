@@ -1,10 +1,14 @@
 import { useLocation, Link } from "react-router-dom";
-import { Moon, Sun, ChevronRight, Home, Download } from "lucide-react";
+import { Moon, Sun, ChevronRight, Home, Download, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useToolHeader } from "@/hooks/use-tool-header";
 
-export function Header() {
+interface HeaderProps {
+  onMenuClick?: () => void;
+}
+
+export function Header({ onMenuClick }: HeaderProps) {
   const location = useLocation();
   const { theme, toggleTheme } = useTheme();
   const { state } = useToolHeader();
@@ -25,10 +29,21 @@ export function Header() {
   const ActionIcon = state.action?.icon || Download;
 
   return (
-    <header className="h-16 bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between px-6 sticky top-0 z-30 shrink-0">
+    <header className="h-20 bg-white dark:bg-neutral-950 border-b border-neutral-200 dark:border-neutral-800 flex items-center justify-between px-6 sticky top-0 z-30 shrink-0">
       {/* Left: Breadcrumbs + Tool Desc */}
-      <div className="flex flex-col">
-        <div className="flex items-center gap-2 text-xs">
+      <div className="flex items-center gap-4">
+        {onMenuClick && (
+          <Button
+            variant="ghost"
+            size="icon"
+            className="lg:hidden -ml-2 h-9 w-9 text-neutral-500"
+            onClick={onMenuClick}
+          >
+            <Menu className="h-5 w-5" />
+          </Button>
+        )}
+        <div className="flex flex-col pt-1">
+          <div className="flex items-center gap-2 text-xs">
           <Link 
             to="/" 
             className="text-neutral-400 hover:text-neutral-900 dark:hover:text-white transition-colors flex items-center gap-1"
@@ -42,11 +57,12 @@ export function Header() {
           </span>
         </div>
         {state.description && (
-          <p className="text-[10px] text-neutral-400 mt-0.5 font-medium leading-none">
+          <p className="text-xs text-neutral-400 mt-1.5 font-medium leading-none">
             {state.description}
           </p>
         )}
       </div>
+    </div>
       
       <div className="flex items-center gap-3">
         {state.action && (
