@@ -1,5 +1,5 @@
 import { usePDFDocument } from "@/hooks/use-pdf";
-import { PDFThumbnail } from "@/components/pdf-thumbnail";
+import { PDFThumbnail } from "@/components/shared";
 import { Button } from "@/components/ui/button";
 import { X, ArrowUp, ArrowDown, Loader2 } from "lucide-react";
 import { cn } from "@/lib/utils";

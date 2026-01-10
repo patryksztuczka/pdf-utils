@@ -15,8 +15,7 @@ import { cn } from "@/lib/utils";
 import JSZip from "jszip";
 import { v4 as uuidv4 } from "uuid";
 import { usePDFDocument } from "@/hooks/use-pdf";
-import { PDFPreviewPanel } from "./pdf-preview-panel";
-import { ToolEmptyState, DragOverlay, SelectedFileCard } from "./tool-ui";
+import { ToolEmptyState, DragOverlay, SelectedFileCard, PDFPreviewPanel } from "@/components/shared";
 import { useToolHeader } from "@/hooks/use-tool-header";
 import {
   ResizableHandle,

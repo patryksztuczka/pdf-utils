@@ -4,9 +4,8 @@ import { mergePDFs } from "@/lib/pdf-utils";
 import { Plus, Download, Layers } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { MergeFileItem } from "./merge-file-item";
-import { PDFPreviewPanel } from "./pdf-preview-panel";
 import { usePDFDocument } from "@/hooks/use-pdf";
-import { ToolEmptyState, DragOverlay } from "./tool-ui";
+import { ToolEmptyState, DragOverlay, PDFPreviewPanel } from "@/components/shared";
 import { useToolHeader } from "@/hooks/use-tool-header";
 import {
   ResizableHandle,
@@ -206,4 +205,3 @@ export function MergeTool() {
     </div>
   );
 }
-

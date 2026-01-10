@@ -1,4 +1,4 @@
-import * as pdfjsLib from 'pdfjs-dist';
+import * as pdfjsLib from "pdfjs-dist";
 
 // Configure worker
 // We use the CDN for simplicity in this dev environment to avoid complex build config for the worker file
@@ -13,16 +13,16 @@ export async function getDocument(file: File) {
 export async function renderPageToDataURL(
   pdf: pdfjsLib.PDFDocumentProxy,
   pageNumber: number,
-  scale = 1
+  scale = 1,
 ): Promise<string> {
   const page = await pdf.getPage(pageNumber);
-  
+
   const viewport = page.getViewport({ scale });
-  const canvas = document.createElement('canvas');
-  const context = canvas.getContext('2d');
-  
+  const canvas = document.createElement("canvas");
+  const context = canvas.getContext("2d");
+
   if (!context) {
-    throw new Error('Could not get canvas context');
+    throw new Error("Could not get canvas context");
   }
 
   canvas.height = viewport.height;
@@ -31,7 +31,8 @@ export async function renderPageToDataURL(
   await page.render({
     canvasContext: context,
     viewport: viewport,
-  } as any).promise;
+    canvas: null,
+  }).promise;
 
   return canvas.toDataURL();
 }
