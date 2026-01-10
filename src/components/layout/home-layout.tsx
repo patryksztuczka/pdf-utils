@@ -1,7 +1,9 @@
 import { Link } from "react-router-dom";
-import { FileText, Moon, Sun, Github } from "lucide-react";
+import { Moon, Sun, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
+import logoLight from "@/assets/logo-light.webp";
+import logoDark from "@/assets/logo-dark.webp";
 
 interface HomeLayoutProps {
   children: React.ReactNode;
@@ -14,12 +16,11 @@ export function HomeLayout({ children }: HomeLayoutProps) {
     <div className="min-h-screen bg-neutral-50 dark:bg-neutral-950 font-sans flex flex-col">
       <header className="h-16 border-b border-neutral-100 dark:border-neutral-800 bg-white dark:bg-neutral-950 px-8 flex items-center justify-between sticky top-0 z-50">
         <Link to="/" className="flex items-center gap-3">
-          <div className="h-8 w-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
-            <FileText className="h-5 w-5" />
-          </div>
-          <span className="font-bold text-lg text-neutral-900 dark:text-white">
-            PDF Utils
-          </span>
+          <img
+            src={theme === "light" ? logoLight : logoDark}
+            alt="PDF Util"
+            className="h-10 w-auto rounded-md shadow-sm border border-neutral-100 dark:border-neutral-800"
+          />
         </Link>
         <div className="flex items-center gap-4">
           <Button
@@ -28,7 +29,11 @@ export function HomeLayout({ children }: HomeLayoutProps) {
             asChild
             className="rounded-full w-10 h-10 text-neutral-500 dark:text-neutral-400"
           >
-            <a href="https://github.com/patryksztuczka/pdf-utils" target="_blank" rel="noreferrer">
+            <a
+              href="https://github.com/patryksztuczka/pdf-utils"
+              target="_blank"
+              rel="noreferrer"
+            >
               <Github className="h-5 w-5" />
             </a>
           </Button>

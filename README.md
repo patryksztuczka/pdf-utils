@@ -1,5 +1,7 @@
 # PDF Utils
 
+![PDF Utils Banner](./public/og-image.png)
+
 A powerful, secure, and entirely client-side PDF management tool built with modern web technologies. Manage your documents without ever uploading them to a server.
 
 **Live Application**: [https://pdfutils.netlify.app/](https://pdfutils.netlify.app/)
