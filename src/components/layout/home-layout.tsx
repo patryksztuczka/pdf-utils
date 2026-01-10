@@ -17,7 +17,9 @@ export function HomeLayout({ children }: HomeLayoutProps) {
           <div className="h-8 w-8 rounded-lg bg-blue-600 text-white flex items-center justify-center">
             <FileText className="h-5 w-5" />
           </div>
-          <span className="font-bold text-lg text-neutral-900 dark:text-white">PDF Util</span>
+          <span className="font-bold text-lg text-neutral-900 dark:text-white">
+            PDF Utils
+          </span>
         </Link>
         <div className="flex items-center gap-4">
           <Button
@@ -40,4 +42,3 @@ export function HomeLayout({ children }: HomeLayoutProps) {
     </div>
   );
 }
-
