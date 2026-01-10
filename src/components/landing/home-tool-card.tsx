@@ -9,6 +9,7 @@ interface HomeToolCardProps {
   description: string;
   icon: ReactNode;
   colorClass: string;
+  className?: string;
 }
 
 export function HomeToolCard({
@@ -17,11 +18,15 @@ export function HomeToolCard({
   description,
   icon,
   colorClass,
+  className,
 }: HomeToolCardProps) {
   return (
     <Link
       to={to}
-      className="group relative bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-8 hover:shadow-xl hover:shadow-neutral-200/50 dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center gap-6 overflow-hidden"
+      className={cn(
+        "group relative bg-white dark:bg-neutral-900 border border-neutral-200 dark:border-neutral-800 rounded-3xl p-8 hover:shadow-xl hover:shadow-neutral-200/50 dark:hover:shadow-none hover:-translate-y-1 transition-all duration-300 flex flex-col items-center text-center gap-6 overflow-hidden",
+        className,
+      )}
     >
       <div
         className={cn(
