@@ -37,12 +37,6 @@ export function LandingPage() {
           colorClass="text-purple-600 bg-purple-50 dark:bg-purple-900/20"
         />
       </div>
-
-      <div className="text-center pt-8 border-t border-neutral-100 dark:border-neutral-800">
-        <p className="text-sm text-neutral-400">
-          No file limits • 100% Private
-        </p>
-      </div>
     </div>
   );
 }

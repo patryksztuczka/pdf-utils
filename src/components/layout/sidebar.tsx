@@ -74,6 +74,10 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <LogOut className="h-4 w-4" />
             <span>Exit Tool</span>
           </Link>
+          <div className="px-3 py-2 text-[10px] font-medium text-neutral-400 uppercase tracking-widest flex items-center justify-between">
+            <span>Version</span>
+            <span>{__APP_VERSION__}</span>
+          </div>
         </div>
       </div>
     </div>

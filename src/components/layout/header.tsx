@@ -1,5 +1,5 @@
 import { useLocation, Link } from "react-router-dom";
-import { Moon, Sun, ChevronRight, Home, Download, Menu } from "lucide-react";
+import { Moon, Sun, ChevronRight, Home, Download, Menu, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 import { useToolHeader } from "@/hooks/use-tool-header";
@@ -84,6 +84,17 @@ export function Header({ onMenuClick }: HeaderProps) {
         )}
 
         <div className="w-px h-6 bg-neutral-200 dark:bg-neutral-800 mx-1" />
+
+        <Button
+          variant="ghost"
+          size="icon"
+          asChild
+          className="rounded-lg w-9 h-9 text-neutral-500 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-900"
+        >
+          <a href="https://github.com/patryksztuczka/pdf-utils" target="_blank" rel="noreferrer">
+            <Github className="h-4 w-4" />
+          </a>
+        </Button>
 
         <Button
           variant="ghost"

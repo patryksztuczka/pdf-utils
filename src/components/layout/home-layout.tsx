@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { FileText, Moon, Sun } from "lucide-react";
+import { FileText, Moon, Sun, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useTheme } from "@/hooks/use-theme";
 
@@ -25,6 +25,16 @@ export function HomeLayout({ children }: HomeLayoutProps) {
           <Button
             variant="ghost"
             size="icon"
+            asChild
+            className="rounded-full w-10 h-10 text-neutral-500 dark:text-neutral-400"
+          >
+            <a href="https://github.com/patryksztuczka/pdf-utils" target="_blank" rel="noreferrer">
+              <Github className="h-5 w-5" />
+            </a>
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
             onClick={toggleTheme}
             className="rounded-full w-10 h-10 text-neutral-500 dark:text-neutral-400"
           >
@@ -39,6 +49,10 @@ export function HomeLayout({ children }: HomeLayoutProps) {
       <main className="flex-1 container mx-auto px-4 py-12 flex flex-col items-center justify-center">
         {children}
       </main>
+      <footer className="py-6 px-8 border-t border-neutral-100 dark:border-neutral-800 flex justify-between items-center text-xs text-neutral-400 font-medium">
+        <p>© {new Date().getFullYear()} PDF Utils</p>
+        <p>v{__APP_VERSION__}</p>
+      </footer>
     </div>
   );
 }

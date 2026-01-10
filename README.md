@@ -2,6 +2,8 @@
 
 A powerful, secure, and entirely client-side PDF management tool built with modern web technologies. Manage your documents without ever uploading them to a server.
 
+**Live Application**: [https://pdfutils.netlify.app/](https://pdfutils.netlify.app/)
+
 ## Features
 
 - **Merge PDFs**: Combine multiple PDF files into a single document with ease.
@@ -30,8 +32,8 @@ Ensure you have [Bun](https://bun.sh/) installed on your machine.
 1. Clone the repository:
 
    ```bash
-   git clone https://github.com/patryksztuczka/pdf-util.git
-   cd pdf-util
+   git clone https://github.com/patryksztuczka/pdf-utils.git
+   cd pdf-utils
    ```
 
 2. Install dependencies:
