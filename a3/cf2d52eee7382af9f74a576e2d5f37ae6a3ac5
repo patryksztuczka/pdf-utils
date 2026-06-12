@@ -1,0 +1,30 @@
+docs/adr/0001-pdf-organizer-as-single-workflow.md
+  s_c4751c1edd4bd4::t_b419fd50140b0f 1-3
+CONTEXT.md
+  s_c4751c1edd4bd4::t_5f94b1e3f3dccd 60
+  s_c4751c1edd4bd4::t_cc8825f7ab11a2 3,47-50,54,71
+  s_c4751c1edd4bd4::t_c949ab505b9dc4 35-38,65-66
+  s_c4751c1edd4bd4::t_8c1b322a5a15d5 69
+  s_c4751c1edd4bd4::t_e71f8e55bb882a 31-34,61-62,70
+  s_c4751c1edd4bd4::t_a2b3cd7769baa0 28,64
+  s_c4751c1edd4bd4::t_3ea9566962d66a 1-2,4-18,23-27,29-30,43-46,51-53,56,58-59,63,68,73-81
+  s_c4751c1edd4bd4::t_1903bf6606c0a3 19-22,57,72
+  s_c4751c1edd4bd4::t_79872f3af52aee 39-42,67
+  s_c4751c1edd4bd4::t_35bf420654c6e7 55,82
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.5.6",
+  "base_commit_sha": "a3cf2d52eee7382af9f74a576e2d5f37ae6a3ac5",
+  "prompts": {},
+  "sessions": {
+    "s_c4751c1edd4bd4": {
+      "agent_id": {
+        "tool": "codex",
+        "id": "019ebae8-4144-7fd0-b054-7f26d5c226c0",
+        "model": "gpt-5.5"
+      },
+      "human_author": "Patryk Sztuczka <patryk.sztuczka00@gmail.com>"
+    }
+  }
+}
